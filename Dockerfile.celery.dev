@@ -1,0 +1,11 @@
+FROM python:3.8
+
+ADD . ./worker
+
+COPY requirements.txt worker/requirements.txt
+
+RUN pip install -r worker/requirements.txt
+
+WORKDIR /worker
+
+CMD [ "celery", "-A", "worker.celery", "worker", "--loglevel=debug", "--concurrency=10", "-P", "solo", "-n", "%h"]

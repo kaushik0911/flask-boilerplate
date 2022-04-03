@@ -1,0 +1,11 @@
+FROM python:3.8
+
+ADD . ./project
+
+COPY requirements.txt project/requirements.txt
+
+RUN pip install -r project/requirements.txt
+
+WORKDIR /project
+
+CMD [ "python", "run.py" ]

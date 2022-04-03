@@ -1,0 +1,46 @@
+version: '3.9'
+services:
+  redis:
+    image: 'redis:alpine'
+    container_name: redis-<application name>
+    ports:
+      - '6379:6379'
+  project:
+    image: rest-<application name>:1.0
+    container_name: rest-<application name>
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "<port number to access from localhost>:5000"
+    links:
+      - redis
+    # platform: linux/amd64 : uncomment this is for mac M1
+    volumes:
+      - .:/project
+    environment:
+      - TASK_QUE_SERVER_REDIS=redis
+  worker:
+    image: celery-<application name>:1.0
+    build:
+      context: .
+      dockerfile: Dockerfile.celery.dev
+    container_name: celery-<application name>
+    links:
+      - redis
+    # platform: linux/amd64 : uncomment this is for mac M1
+    volumes:
+      - .:/worker
+    environment:
+      - TASK_QUE_SERVER_REDIS=redis
+      # add requird configs
+  flower:
+    image: mher/flower
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - FLOWER_PORT=5555
+    container_name: flower-ingestion-etl-pipeline
+    links:
+      - redis
+    ports:
+      - '5555:5555'
